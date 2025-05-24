@@ -53,15 +53,14 @@
       M.AutoInit();
 
       const API_URL = 'https://script.google.com/macros/s/AKfycbxLz0NYcU2o80qet0ZzP3kY_Xl9-TC1SoaZF36SQ9fbPouQ9i0O-xOC-tzV5pBd8qByyg/exec';
-      const members = [
-        '小林','中西'];
+      const members = ['小林', '中西'];
 
       // ユーザー名取得
       let userName = localStorage.getItem('username');
       if (!members.includes(userName)) {
         let name;
         do {
-          name = prompt('あなたの名前を入力してください');
+          name = prompt('あなたの名前を入力してください (小林 または 中西)');
           if (name === null) { alert('名前入力が必要です'); return; }
           if (!members.includes(name)) alert('メンバーリストと一致しません');
         } while (!members.includes(name));
@@ -74,16 +73,22 @@
 
       // GET で読み込み
       async function loadStatuses() {
+        console.log('Fetching statuses from', API_URL);
         const res = await fetch(API_URL);
-        if (!res.ok) throw new Error('読み込み失敗');
-        return await res.json();
+        console.log('Response status:', res.status);
+        if (!res.ok) {
+          const text = await res.text(); console.error('Error body:', text);
+          throw new Error('読み込み失敗: ' + res.status);
+        }
+        const data = await res.json(); console.log('Fetched data:', data);
+        return data;
       }
       // GET で更新
       async function postStatus(status) {
         const url = `${API_URL}?action=update&name=${encodeURIComponent(userName)}&status=${encodeURIComponent(status)}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('更新失敗');
-        return await res.json();
+        return res.json();
       }
 
       // テーブル描画
@@ -128,3 +133,4 @@
   </script>
 </body>
 </html>
+
