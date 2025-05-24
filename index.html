@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>研究室在室可視化アプリ（手動切替版）</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 1rem; }
+    h1 { text-align: center; }
+    #user-list { list-style: none; padding: 0; }
+    .user-item { display: flex; align-items: center; margin: 0.5rem 0; }
+    .status-dot { width: 1rem; height: 1rem; border-radius: 50%; margin-right: 0.75rem; flex-shrink: 0; }
+    .in_lab     { background-color: #28a745; } /* 緑 */
+    .in_campus { background-color: #ffc107; } /* 黄 */
+    .off_campus{ background-color: #dc3545; } /* 赤 */
+    #control { margin: 1rem 0; text-align: center; }
+    #status-select, #update-btn { font-size: 1rem; padding: 0.5rem; margin: 0.25rem; }
+  </style>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-database-compat.js"></script>
+</head>
+<body>
+  <h1>研究室在室可視化（手動切替）</h1>
+  <div id="control">
+    <select id="status-select">
+      <option value="in_lab">研究室内</option>
+      <option value="in_campus">キャンパス内</option>
+      <option value="off_campus">キャンパス外</option>
+    </select>
+    <button id="update-btn">更新</button>
+  </div>
+  <ul id="user-list"></ul>
+
+  <script>
+    // Firebase 初期化（自分のプロジェクト情報に置き換えてください）
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // メンバーリスト（20名）
+    const members = [
+      '山田太郎','佐藤花子','鈴木次郎','高橋美咲','伊藤誠',
+      '渡辺愛','山本健太','中村由美','小林拓也','加藤真理',
+      '吉田翔','山口奈々','井上亮','木村恵','斎藤大輔',
+      '松本理香','林直樹','清水香織','山崎優','石川亮子'
+    ];
+
+    // ユーザー名設定
+    let userName = localStorage.getItem('userName');
+    if (!userName) {
+      userName = prompt('あなたの名前を選んでください（例: 山田太郎）');
+      localStorage.setItem('userName', userName);
+    }
+
+    // ステータス更新関数
+    function updateStatus() {
+      const status = document.getElementById('status-select').value;
+      db.ref('users/' + encodeURIComponent(userName)).set({
+        name: userName,
+        status: status,
+        timestamp: Date.now()
+      });
+    }
+
+    // 更新ボタン押下
+    document.getElementById('update-btn').addEventListener('click', () => {
+      updateStatus();
+      alert('ステータスを更新しました: ' + document.getElementById('status-select').selectedOptions[0].text);
+    });
+
+    // 初期更新
+    updateStatus();
+
+    // 他ユーザーの情報を監視して UI 更新
+    const listEl = document.getElementById('user-list');
+    db.ref('users').on('value', snapshot => {
+      const data = snapshot.val() || {};
+      listEl.innerHTML = '';
+      members.forEach(name => {
+        const key = encodeURIComponent(name);
+        const u = data[key] || { name: name, status: 'off_campus' };
+        const item = document.createElement('li');
+        item.className = 'user-item';
+        const dot = document.createElement('span');
+        dot.className = 'status-dot ' + u.status;
+        const text = document.createTextNode(u.name + ' — ' + (
+          u.status === 'in_lab'     ? '研究室内'
+        : u.status === 'in_campus' ? 'キャンパス内'
+        :                             'キャンパス外'
+        ));
+        item.appendChild(dot);
+        item.appendChild(text);
+        listEl.appendChild(item);
+      });
+    });
+  </script>
+</body>
+</html>
