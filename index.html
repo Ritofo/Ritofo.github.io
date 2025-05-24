@@ -2,100 +2,76 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>研究室在室可視化アプリ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>研究室在室可視化 (Materialize版)</title>
+  <!-- Materialize CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; max-width: 700px; margin: auto; padding: 1rem; }
-    h1 { text-align: center; margin-bottom: 1rem; }
-    #control { margin: 1rem 0; text-align: center; }
-    #status-select, #update-btn { font-size: 1rem; padding: 0.5rem; margin: 0.25rem; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: center; }
-    th { background-color: #f5f5f5; }
-    .magnet { font-size: 1.2rem; }
+    body { background: #f0f0f0; }
+    .status-badge { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+    .in_lab     { background-color: #4caf50; } /* 緑 */
+    .in_campus { background-color: #ffca28; } /* 黄 */
+    .off_campus{ background-color: #e53935; } /* 赤 */
   </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-wrapper teal darken-2">
+      <a href="#" class="brand-logo center">研究室在室可視化</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="section">
+      <!-- ステータス更新カード -->
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">現在のステータス更新</span>
+          <div class="input-field">
+            <select id="status-select" class="browser-default">
+              <option value="in_lab">研究室内</option>
+              <option value="in_campus">キャンパス内</option>
+              <option value="off_campus" selected>キャンパス外</option>
+            </select>
+          </div>
+          <button id="update-btn" class="btn waves-effect waves-light teal">更新<i class="material-icons right">send</i></button>
+        </div>
+      </div>
+
+      <!-- メンバー一覧テーブル -->
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">メンバー一覧</span>
+          <table class="highlight centered">
+            <thead>
+              <tr>
+                <th>名前</th>
+                <th>ステータス</th>
+                <th>更新日時</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <!-- JSで動的に挿入 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-database-compat.js"></script>
-</head>
-<body>
-  <h1>研究室在室可視化アプリ</h1>
-
-  <!-- ステータス更新コントロール -->
-  <div id="control">
-    <label for="status-select">ステータス更新:</label>
-    <select id="status-select">
-      <option value="in_lab">研究室内</option>
-      <option value="in_campus">キャンパス内</option>
-      <option value="off_campus" selected>キャンパス外</option>
-    </select>
-    <button id="update-btn">更新</button>
-  </div>
-
-  <!-- メンバー状態一覧テーブル -->
-  <table>
-    <thead>
-      <tr>
-        <th>名前</th>
-        <th>研究室内</th>
-        <th>キャンパス内</th>
-        <th>キャンパス外</th>
-      </tr>
-    </thead>
-    <tbody id="table-body"></tbody>
-  </table>
+  <!-- Materialize JS & Icons -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script src="https://fonts.googleapis.com/icon?family=Material+Icons"></script>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // メンバーリスト
-      const members = [
-        '山田太郎','佐藤花子','鈴木次郎','高橋美咲','伊藤誠',
-        '渡辺愛','山本健太','中村由美','小林拓也','加藤真理',
-        '吉田翔','山口奈々','井上亮','木村恵','斎藤大輔',
-        '松本理香','林直樹','清水香織','山崎優','石川亮子'
-      ];
+      // Materialize select 初期化
+      M.AutoInit();
 
-      // DOM要素
-      const tbody = document.getElementById('table-body');
-      const selectEl = document.getElementById('status-select');
-      const updateBtn = document.getElementById('update-btn');
-
-      // テーブル描画関数
-      function renderTable(data) {
-        tbody.innerHTML = '';
-        members.forEach(name => {
-          const key = encodeURIComponent(name);
-          const record = data[key];
-          const status = record && record.name === name ? record.status : 'off_campus';
-          const tr = document.createElement('tr');
-          // 名前セル
-          const tdName = document.createElement('td');
-          tdName.textContent = name;
-          tr.appendChild(tdName);
-          // 状態セル
-          ['in_lab','in_campus','off_campus'].forEach(st => {
-            const td = document.createElement('td');
-            if (status === st) td.innerHTML = '<span class="magnet">🧲</span>';
-            tr.appendChild(td);
-          });
-          tbody.appendChild(tr);
-        });
-      }
-
-      // 初期描画（全員オフキャンパス）
-      renderTable({});
-
-      // ユーザー名取得/検証
-      let userName = localStorage.getItem('userName');
-      while (!userName || !members.includes(userName)) {
-        const name = prompt('あなたの名前を選んで入力してください');
-        if (!name) alert('名前が必要です。');
-        else if (!members.includes(name)) alert('メンバーリストと一致しません。');
-        else userName = name;
-      }
-      localStorage.setItem('userName', userName);
-
-      // Firebase 初期化（自分の設定に置き換えてください）
+      // Firebase 初期化
       const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -108,23 +84,76 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
 
-      // Firebase データ更新時
-      db.ref('users').on('value', snapshot => {
-        const data = snapshot.val() || {};
-        renderTable(data);
+      // メンバー名リスト
+      const members = [
+        '山田太郎','佐藤花子','鈴木次郎','高橋美咲','伊藤誠',
+        '渡辺愛','山本健太','中村由美','小林拓也','加藤真理',
+        '吉田翔','山口奈々','井上亮','木村恵','斎藤大輔',
+        '松本理香','林直樹','清水香織','山崎優','石川亮子'
+      ];
+
+      // 要素
+      const selectEl = document.getElementById('status-select');
+      const updateBtn = document.getElementById('update-btn');
+      const tbody = document.getElementById('table-body');
+
+      // ユーザー名取得／メンバー検証
+      let userName = localStorage.getItem('userName');
+      while (!userName || !members.includes(userName)) {
+        const name = prompt('あなたの名前を入力してください');
+        if (name && members.includes(name)) {
+          userName = name;
+          localStorage.setItem('userName', userName);
+        } else {
+          alert('メンバーリストと一致しないか、入力が無効です');
+        }
+      }
+
+      // テーブル描画関数
+      function renderTable(data) {
+        tbody.innerHTML = '';
+        members.forEach(name => {
+          const record = data[encodeURIComponent(name)];
+          const status = record ? record.status : 'off_campus';
+          const ts = record ? new Date(record.timestamp).toLocaleString() : '-';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${name}</td>
+            <td><span class="status-badge ${status}"></span>${
+              status === 'in_lab'? '研究室内'
+              : status === 'in_campus'? 'キャンパス内'
+              : 'キャンパス外'}
+            </td>
+            <td>${ts}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Firebase 監視
+      db.ref('users').on('value', snap => {
+        renderTable(snap.val() || {});
       });
 
-      // 初回はキャンパス外登録
-      db.ref('users/' + encodeURIComponent(userName)).set({ name: userName, status: 'off_campus', timestamp: Date.now() });
+      // 初回登録
+      db.ref('users/' + encodeURIComponent(userName)).set({
+        name: userName,
+        status: selectEl.value,
+        timestamp: Date.now()
+      });
 
-      // ステータス更新処理
+      // 更新ボタン
       updateBtn.addEventListener('click', () => {
-        const status = selectEl.value;
-        db.ref('users/' + encodeURIComponent(userName)).set({ name: userName, status, timestamp: Date.now() });
-        alert('ステータスを更新しました: ' + selectEl.selectedOptions[0].text);
+        db.ref('users/' + encodeURIComponent(userName)).set({
+          name: userName,
+          status: selectEl.value,
+          timestamp: Date.now()
+        });
+        M.toast({html: 'ステータスを更新しました'});
       });
     });
   </script>
 </body>
 </html>
+
 
