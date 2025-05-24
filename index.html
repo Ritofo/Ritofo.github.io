@@ -3,15 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>研究室在室可視化 (Materialize版)</title>
+  <title>研究室在室可視化 (Google Sheets版)</title>
   <!-- Materialize CSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
   <style>
-    body { background: #f0f0f0; }
     .status-badge { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; }
-    .in_lab     { background-color: #4caf50; } /* 緑 */
-    .in_campus { background-color: #ffca28; } /* 黄 */
-    .off_campus{ background-color: #e53935; } /* 赤 */
+    .in_lab     { background-color: #4caf50; }
+    .in_campus { background-color: #ffca28; }
+    .off_campus{ background-color: #e53935; }
   </style>
 </head>
 <body>
@@ -20,158 +19,76 @@
       <a href="#" class="brand-logo center">研究室在室可視化</a>
     </div>
   </nav>
-
-  <div class="container">
-    <div class="section">
-      <!-- ステータス更新カード -->
-      <div class="card">
-        <div class="card-content">
-          <span class="card-title">現在のステータス更新</span>
-          <div class="input-field">
-            <select id="status-select" class="browser-default">
-              <option value="in_lab">研究室内</option>
-              <option value="in_campus">キャンパス内</option>
-              <option value="off_campus" selected>キャンパス外</option>
-            </select>
-          </div>
-          <button id="update-btn" class="btn waves-effect waves-light teal">更新<i class="material-icons right">send</i></button>
-        </div>
+  <div class="container" style="margin-top:1rem;">
+    <!-- 更新カード -->
+    <div class="card">
+      <div class="card-content">
+        <span class="card-title">ステータス更新</span>
+        <select id="status-select" class="browser-default">
+          <option value="in_lab">研究室内</option>
+          <option value="in_campus">キャンパス内</option>
+          <option value="off_campus">キャンパス外</option>
+        </select>
+        <button id="update-btn" class="btn waves-effect waves-light" style="margin-left:1rem;">更新</button>
       </div>
-
-      <!-- メンバー一覧テーブル -->
-      <div class="card">
-        <div class="card-content">
-          <span class="card-title">メンバー一覧</span>
-          <table class="highlight centered">
-            <thead>
-              <tr>
-                <th>名前</th>
-                <th>ステータス</th>
-                <th>更新日時</th>
-              </tr>
-            </thead>
-            <tbody id="table-body">
-              <!-- JSの前に静的に20名分オフキャンパスを表示（動かない場合のフォールバック） -->
-              <tr><td>山田太郎</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>佐藤花子</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>鈴木次郎</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>高橋美咲</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>伊藤誠</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>渡辺愛</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>山本健太</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>中村由美</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>小林拓也</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>加藤真理</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>吉田翔</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>山口奈々</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>井上亮</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>木村恵</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>斎藤大輔</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>松本理香</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>林直樹</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>清水香織</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>山崎優</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-              <tr><td>石川亮子</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
-            </tbody>
-          </table>
-        </div>
+    </div>
+    <!-- メンバー一覧 -->
+    <div class="card">
+      <div class="card-content">
+        <span class="card-title">メンバー一覧</span>
+        <table class="highlight centered">
+          <thead>
+            <tr><th>名前</th><th>ステータス</th><th>更新日時</th></tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
       </div>
     </div>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-database-compat.js"></script>
-  <!-- Materialize JS & Icons -->
+  <!-- Materialize JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-  <script src="https://fonts.googleapis.com/icon?family=Material+Icons"></script>
-
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Materialize select 初期化
       M.AutoInit();
-
-      // Firebase 初期化
-      const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "SENDER_ID",
-        appId: "APP_ID"
-      };
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.database();
-
-      // メンバー名リスト
-      const members = [
-        '山田太郎','佐藤花子','鈴木次郎','高橋美咲','伊藤誠',
-        '渡辺愛','山本健太','中村由美','小林拓也','加藤真理',
-        '吉田翔','山口奈々','井上亮','木村恵','斎藤大輔',
-        '松本理香','林直樹','清水香織','山崎優','石川亮子'
-      ];
-
-      // 要素
+      const API_URL = 'https://script.google.com/macros/s/【YOUR_DEPLOY_ID】/exec';
+      const members = ['山田太郎','佐藤花子','鈴木次郎','高橋美咲','伊藤誠','渡辺愛','山本健太','中村由美','小林拓也','加藤真理','吉田翔','山口奈々','井上亮','木村恵','斎藤大輔','松本理香','林直樹','清水香織','山崎優','石川亮子'];
+      let userName = localStorage.getItem('username');
+      while (!members.includes(userName)) {
+        const name = prompt('あなたの名前を入力してください');
+        if (members.includes(name)) { userName = name; localStorage.setItem('username',name); }
+      }
       const selectEl = document.getElementById('status-select');
-      const updateBtn = document.getElementById('update-btn');
       const tbody = document.getElementById('table-body');
 
-      // ユーザー名取得／メンバー検証
-      let userName = localStorage.getItem('userName');
-      while (!userName || !members.includes(userName)) {
-        const name = prompt('あなたの名前を入力してください');
-        if (name && members.includes(name)) {
-          userName = name;
-          localStorage.setItem('userName', userName);
-        } else {
-          alert('メンバーリストと一致しないか、入力が無効です');
-        }
+      // シートから読み込み
+      async function loadStatuses() {
+        const res = await fetch(API_URL);
+        return await res.json();
       }
-
-      // テーブル描画関数
-      function renderTable(data) {
-        // 動的描画前に一度静的行をクリア
+      // シートに書き込み
+      async function updateStatus() {
+        const status = selectEl.value;
+        const url = `${API_URL}?action=update&name=${encodeURIComponent(userName)}&status=${status}`;
+        await fetch(url);
+        M.toast({html:'更新しました'});
+        await refresh();
+      }
+      // テーブル再描画
+      async function refresh() {
+        const data = await loadStatuses();
         tbody.innerHTML = '';
         members.forEach(name => {
-          const record = data[encodeURIComponent(name)];
-          const status = record ? record.status : 'off_campus';
-          const ts = record ? new Date(record.timestamp).toLocaleString() : '-';
+          const rec = data[name] || {status:'off_campus',timestamp:null};
+          const ts = rec.timestamp? new Date(rec.timestamp).toLocaleString() : '-';
           const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${name}</td>
-            <td><span class="status-badge ${status}"></span>${
-              status === 'in_lab'? '研究室内'
-              : status === 'in_campus'? 'キャンパス内'
-              : 'キャンパス外'}
-            </td>
-            <td>${ts}</td>
-          `;
+          tr.innerHTML = `<td>${name}</td><td><span class='status-badge ${rec.status}'></span>${rec.status==='in_lab'?'研究室内':rec.status==='in_campus'?'キャンパス内':'キャンパス外'}</td><td>${ts}</td>`;
           tbody.appendChild(tr);
         });
       }
 
-      // Firebase 監視
-      db.ref('users').on('value', snap => {
-        renderTable(snap.val() || {});
-      });
-
-      // 初回登録
-      db.ref('users/' + encodeURIComponent(userName)).set({
-        name: userName,
-        status: selectEl.value,
-        timestamp: Date.now()
-      });
-
-      // 更新ボタン
-      updateBtn.addEventListener('click', () => {
-        db.ref('users/' + encodeURIComponent(userName)).set({
-          name: userName,
-          status: selectEl.value,
-          timestamp: Date.now()
-        });
-        M.toast({html: 'ステータスを更新しました'});
-      });
+      document.getElementById('update-btn').addEventListener('click', updateStatus);
+      refresh();
     });
   </script>
 </body>
