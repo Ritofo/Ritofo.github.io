@@ -7,16 +7,14 @@
   <style>
     body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 1rem; }
     h1 { text-align: center; }
-    nav { text-align: center; margin-bottom: 1rem; }
-    nav a { margin: 0 0.5rem; text-decoration: none; }
     #control { margin: 1rem 0; text-align: center; }
     #status-select, #update-btn { font-size: 1rem; padding: 0.5rem; margin: 0.25rem; }
     #user-list { list-style: none; padding: 0; }
     .user-item { display: flex; align-items: center; margin: 0.5rem 0; }
     .status-dot { width: 1rem; height: 1rem; border-radius: 50%; margin-right: 0.75rem; flex-shrink: 0; }
-    .in_lab     { background-color: #28a745; }
-    .in_campus { background-color: #ffc107; }
-    .off_campus{ background-color: #dc3545; }
+    .in_lab     { background-color: #28a745; }  /* 緑 */
+    .in_campus { background-color: #ffc107; }  /* 黄 */
+    .off_campus{ background-color: #dc3545; }  /* 赤 */
   </style>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
@@ -24,17 +22,14 @@
 </head>
 <body>
   <h1>研究室在室可視化アプリ</h1>
-  <nav>
-    <a href="index.html">トップページ</a>|
-    <a href="index.html?mode=update">ステータス更新</a>
-  </nav>
 
-  <!-- 状態更新コントロール（mode=updateのときのみ表示） -->
-  <div id="control" style="display:none;">
+  <!-- ステータス更新コントロール -->
+  <div id="control">
+    <label for="status-select">ステータス:</label>
     <select id="status-select">
       <option value="in_lab">研究室内</option>
       <option value="in_campus">キャンパス内</option>
-      <option value="off_campus">キャンパス外</option>
+      <option value="off_campus" selected>キャンパス外</option>
     </select>
     <button id="update-btn">更新</button>
   </div>
@@ -58,17 +53,13 @@
 
     // メンバーリスト
     const members = [
-      '小林','中西','市橋','高橋美咲','伊藤誠',
+      '山田太郎','佐藤花子','鈴木次郎','高橋美咲','伊藤誠',
       '渡辺愛','山本健太','中村由美','小林拓也','加藤真理',
       '吉田翔','山口奈々','井上亮','木村恵','斎藤大輔',
       '松本理香','林直樹','清水香織','山崎優','石川亮子'
     ];
 
-    // モード判定
-    const params = new URLSearchParams(location.search);
-    const isUpdateMode = params.get('mode') === 'update';
-
-    // ユーザー名取得／検証（更新モード時のみ）
+    // ユーザー名取得／検証
     let userName = localStorage.getItem('userName');
     function promptUserName() {
       let name;
@@ -80,43 +71,48 @@
       userName = name;
       localStorage.setItem('userName', userName);
     }
-    if (isUpdateMode) {
-      document.getElementById('control').style.display = 'block';
-      if (!userName || !members.includes(userName)) promptUserName();
+    if (!userName || !members.includes(userName)) promptUserName();
+
+    // ステータス更新関数
+    function updateStatus() {
+      const status = document.getElementById('status-select').value;
+      db.ref('users/' + encodeURIComponent(userName)).set({
+        name: userName,
+        status: status,
+        timestamp: Date.now()
+      });
+      alert('ステータスを更新しました: ' + document.getElementById('status-select').selectedOptions[0].text);
     }
 
-    // 状態更新
-    function updateStatus() {
-      if (!members.includes(userName)) return;
-      const status = document.getElementById('status-select').value;
-      db.ref('users/' + encodeURIComponent(userName)).set({ name: userName, status, timestamp: Date.now() });
-      alert('更新しました: ' + document.getElementById('status-select').selectedOptions[0].text);
-    }
-    if (isUpdateMode) {
-      document.getElementById('update-btn').addEventListener('click', updateStatus);
-      updateStatus();
-    }
+    // ボタンクリック
+    document.getElementById('update-btn').addEventListener('click', updateStatus);
+
+    // 初期登録（キャンパス外）
+    updateStatus();
 
     // メンバー状態一覧表示
     const listEl = document.getElementById('user-list');
-    db.ref('users').on('value', snap => {
-      const data = snap.val() || {};
+    db.ref('users').on('value', snapshot => {
+      const data = snapshot.val() || {};
       listEl.innerHTML = '';
       members.forEach(name => {
         const key = encodeURIComponent(name);
         const u = data[key] && members.includes(data[key].name)
-                ? data[key]
-                : { name, status: 'off_campus' };
-        const li = document.createElement('li'); li.className = 'user-item';
-        const dot = document.createElement('span'); dot.className = 'status-dot ' + u.status;
+                  ? data[key]
+                  : { name: name, status: 'off_campus' };
+        const li = document.createElement('li');
+        li.className = 'user-item';
+        const dot = document.createElement('span');
+        dot.className = 'status-dot ' + u.status;
         const text = document.createTextNode(
           u.name + ' — ' + (
-            u.status === 'in_lab'? '研究室内'
-          : u.status === 'in_campus'? 'キャンパス内'
-          : 'キャンパス外')
+            u.status === 'in_lab'     ? '研究室内'
+          : u.status === 'in_campus' ? 'キャンパス内'
+          :                             'キャンパス外')
         );
-        li.append(dot, text);
-        listEl.append(li);
+        li.appendChild(dot);
+        li.appendChild(text);
+        listEl.appendChild(li);
       });
     });
   </script>
