@@ -51,7 +51,27 @@
               </tr>
             </thead>
             <tbody id="table-body">
-              <!-- JSで動的に挿入 -->
+              <!-- JSの前に静的に20名分オフキャンパスを表示（動かない場合のフォールバック） -->
+              <tr><td>山田太郎</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>佐藤花子</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>鈴木次郎</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>高橋美咲</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>伊藤誠</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>渡辺愛</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>山本健太</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>中村由美</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>小林拓也</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>加藤真理</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>吉田翔</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>山口奈々</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>井上亮</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>木村恵</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>斎藤大輔</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>松本理香</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>林直樹</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>清水香織</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>山崎優</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
+              <tr><td>石川亮子</td><td><span class="status-badge off_campus"></span>キャンパス外</td><td>-</td></tr>
             </tbody>
           </table>
         </div>
@@ -111,6 +131,7 @@
 
       // テーブル描画関数
       function renderTable(data) {
+        // 動的描画前に一度静的行をクリア
         tbody.innerHTML = '';
         members.forEach(name => {
           const record = data[encodeURIComponent(name)];
@@ -155,5 +176,3 @@
   </script>
 </body>
 </html>
-
-
