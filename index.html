@@ -46,35 +46,47 @@
   </table>
 
   <script>
-    // Firebase 初期化（自分の設定に置き換えてください）
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "SENDER_ID",
-      appId: "APP_ID"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    document.addEventListener('DOMContentLoaded', () => {
+      // メンバーリスト
+      const members = [
+        '山田太郎','佐藤花子','鈴木次郎','高橋美咲','伊藤誠',
+        '渡辺愛','山本健太','中村由美','小林拓也','加藤真理',
+        '吉田翔','山口奈々','井上亮','木村恵','斎藤大輔',
+        '松本理香','林直樹','清水香織','山崎優','石川亮子'
+      ];
 
-    // メンバーリスト
-    const members = [
-      '山田太郎','佐藤花子','鈴木次郎','高橋美咲','伊藤誠',
-      '渡辺愛','山本健太','中村由美','小林拓也','加藤真理',
-      '吉田翔','山口奈々','井上亮','木村恵','斎藤大輔',
-      '松本理香','林直樹','清水香織','山崎優','石川亮子'
-    ];
+      // DOM要素
+      const tbody = document.getElementById('table-body');
+      const selectEl = document.getElementById('status-select');
+      const updateBtn = document.getElementById('update-btn');
 
-    // DOM要素
-    const tbody = document.getElementById('table-body');
-    const selectEl = document.getElementById('status-select');
-    const updateBtn = document.getElementById('update-btn');
+      // テーブル描画関数
+      function renderTable(data) {
+        tbody.innerHTML = '';
+        members.forEach(name => {
+          const key = encodeURIComponent(name);
+          const record = data[key];
+          const status = record && record.name === name ? record.status : 'off_campus';
+          const tr = document.createElement('tr');
+          // 名前セル
+          const tdName = document.createElement('td');
+          tdName.textContent = name;
+          tr.appendChild(tdName);
+          // 状態セル
+          ['in_lab','in_campus','off_campus'].forEach(st => {
+            const td = document.createElement('td');
+            if (status === st) td.innerHTML = '<span class="magnet">🧲</span>';
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+      }
 
-    // ユーザー名取得/検証
-    let userName = localStorage.getItem('userName');
-    (function promptUserName() {
+      // 初期描画（全員オフキャンパス）
+      renderTable({});
+
+      // ユーザー名取得/検証
+      let userName = localStorage.getItem('userName');
       while (!userName || !members.includes(userName)) {
         const name = prompt('あなたの名前を選んで入力してください');
         if (!name) alert('名前が必要です。');
@@ -82,45 +94,36 @@
         else userName = name;
       }
       localStorage.setItem('userName', userName);
-    })();
 
-    // テーブル描画関数
-    function renderTable(data) {
-      tbody.innerHTML = '';
-      members.forEach(name => {
-        const key = encodeURIComponent(name);
-        const record = data[key];
-        const status = record && record.name === name ? record.status : 'off_campus';
-        const tr = document.createElement('tr');
-        // 名前
-        const tdName = document.createElement('td'); tdName.textContent = name;
-        tr.appendChild(tdName);
-        // 状態セル
-        ['in_lab','in_campus','off_campus'].forEach(st => {
-          const td = document.createElement('td');
-          if (status === st) td.innerHTML = '<span class="magnet">🧲</span>';
-          tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
+      // Firebase 初期化（自分の設定に置き換えてください）
+      const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "SENDER_ID",
+        appId: "APP_ID"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      // Firebase データ更新時
+      db.ref('users').on('value', snapshot => {
+        const data = snapshot.val() || {};
+        renderTable(data);
       });
-    }
 
-    // Firebase データ更新時
-    db.ref('users').on('value', snapshot => {
-      const data = snapshot.val() || {};
-      renderTable(data);
-    });
-    // 初期表示（Firebase未読み込み時）
-    renderTable({});
+      // 初回はキャンパス外登録
+      db.ref('users/' + encodeURIComponent(userName)).set({ name: userName, status: 'off_campus', timestamp: Date.now() });
 
-    // ステータス更新処理
-    updateBtn.addEventListener('click', () => {
-      const status = selectEl.value;
-      db.ref('users/' + encodeURIComponent(userName)).set({ name: userName, status, timestamp: Date.now() });
-      alert('ステータスを更新しました: ' + selectEl.selectedOptions[0].text);
+      // ステータス更新処理
+      updateBtn.addEventListener('click', () => {
+        const status = selectEl.value;
+        db.ref('users/' + encodeURIComponent(userName)).set({ name: userName, status, timestamp: Date.now() });
+        alert('ステータスを更新しました: ' + selectEl.selectedOptions[0].text);
+      });
     });
-    // 初回はキャンパス外登録
-    db.ref('users/' + encodeURIComponent(userName)).set({ name: userName, status: 'off_campus', timestamp: Date.now() });
   </script>
 </body>
 </html>
