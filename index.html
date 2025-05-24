@@ -21,9 +21,9 @@
 <body>
   <h1>研究室在室可視化アプリ</h1>
 
-  <!-- ステータス更新コントロール -->
+  <!-- 更新コントロールと一覧を同一画面に統合 -->
   <div id="control">
-    <label for="status-select">ステータス:</label>
+    <label for="status-select">ステータス更新:</label>
     <select id="status-select">
       <option value="in_lab">研究室内</option>
       <option value="in_campus">キャンパス内</option>
@@ -32,7 +32,7 @@
     <button id="update-btn">更新</button>
   </div>
 
-  <!-- 状態表示テーブル -->
+  <!-- メンバー状態一覧テーブル -->
   <table>
     <thead>
       <tr>
@@ -42,13 +42,11 @@
         <th>キャンパス外</th>
       </tr>
     </thead>
-    <tbody id="table-body">
-      <!-- JSで行を挿入 -->
-    </tbody>
+    <tbody id="table-body"></tbody>
   </table>
 
   <script>
-    // Firebase 初期化
+    // Firebase 初期化（自分の設定に置き換えてください）
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -69,13 +67,13 @@
       '松本理香','林直樹','清水香織','山崎優','石川亮子'
     ];
 
-    // ユーザー名取得／検証
+    // ユーザー名取得/検証
     let userName = localStorage.getItem('userName');
     function promptUserName() {
       let name;
       do {
         name = prompt('あなたの名前を選んで入力してください');
-        if (!name) alert('名前の入力が必要です。');
+        if (!name) alert('名前が必要です。');
         else if (!members.includes(name)) { alert('メンバーリストと一致しません。'); name = null; }
       } while (!name);
       userName = name;
@@ -83,35 +81,33 @@
     }
     if (!userName || !members.includes(userName)) promptUserName();
 
-    // ステータス更新
+    // ステータス更新処理
     function updateStatus() {
-      const status = document.getElementById('status-select').value;
+      const select = document.getElementById('status-select');
+      const status = select.value;
       db.ref('users/' + encodeURIComponent(userName)).set({ name: userName, status, timestamp: Date.now() });
-      alert('ステータスを更新しました: ' + document.getElementById('status-select').selectedOptions[0].text);
+      alert('ステータスを更新しました: ' + select.selectedOptions[0].text);
     }
     document.getElementById('update-btn').addEventListener('click', updateStatus);
-    // 初期登録（キャンパス外）
+    // 初回はキャンパス外登録
     updateStatus();
 
-    // テーブル更新
+    // テーブル描画
     const tbody = document.getElementById('table-body');
     db.ref('users').on('value', snapshot => {
       const data = snapshot.val() || {};
       tbody.innerHTML = '';
       members.forEach(name => {
         const key = encodeURIComponent(name);
-        const u = data[key] && members.includes(data[key].name)
-                  ? data[key]
-                  : { name, status: 'off_campus' };
+        const record = data[key];
+        const status = record && record.name === name ? record.status : 'off_campus';
         const tr = document.createElement('tr');
-        // 名前
-        const tdName = document.createElement('td');
-        tdName.textContent = u.name;
-        tr.appendChild(tdName);
-        // 各状態列
+        // 名前セル
+        const tdName = document.createElement('td'); tdName.textContent = name; tr.appendChild(tdName);
+        // マグネットセル
         ['in_lab','in_campus','off_campus'].forEach(st => {
           const td = document.createElement('td');
-          if (u.status === st) td.innerHTML = '<span class="magnet">🧲</span>';
+          if (status === st) td.innerHTML = '<span class="magnet">🧲</span>';
           tr.appendChild(td);
         });
         tbody.appendChild(tr);
@@ -120,4 +116,3 @@
   </script>
 </body>
 </html>
-
