@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>研究室在室可視化 (Google Sheets版)</title>
+  <title>研究室在室確認アプリ</title>
   <!-- Materialize CSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
   <style>
@@ -53,14 +53,14 @@
       M.AutoInit();
 
       const API_URL = 'https://script.google.com/macros/s/AKfycbxLz0NYcU2o80qet0ZzP3kY_Xl9-TC1SoaZF36SQ9fbPouQ9i0O-xOC-tzV5pBd8qByyg/exec';
-      const members = ['小林', '中西'];
+      const members = ['小林', '中西','川口','横幕','中嶋','市橋','伊藤','竹内'];
 
       // ユーザー名取得
       let userName = localStorage.getItem('username');
       if (!members.includes(userName)) {
         let name;
         do {
-          name = prompt('あなたの名前を入力してください (小林 または 中西)');
+          name = prompt('あなたの名前を漢字で入力してください');
           if (name === null) { alert('名前入力が必要です'); return; }
           if (!members.includes(name)) alert('メンバーリストと一致しません');
         } while (!members.includes(name));
