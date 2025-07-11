@@ -60,7 +60,7 @@
       if (!members.includes(userName)) {
         let name;
         do {
-          name = prompt('あなたの名前を漢字で入力してください');
+          name = prompt('あなたの苗字を漢字で入力してください');
           if (name === null) { alert('名前入力が必要です'); return; }
           if (!members.includes(name)) alert('メンバーリストと一致しません');
         } while (!members.includes(name));
